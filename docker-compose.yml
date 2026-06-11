@@ -1,0 +1,57 @@
+services:
+  mixer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./config/api.env
+    environment:
+      - PORT=8080
+    depends_on:
+      - mock-mixer
+      - mock-camera
+      - mock-recorder
+      - presentation-clicker
+
+  mock-mixer:
+    build:
+      context: ./mock-mixer
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      - PORT=8090
+
+  mock-camera:
+    build:
+      context: ./mock-camera
+      dockerfile: Dockerfile
+    ports:
+      - "8091:8091"
+    environment:
+      - PORT=8091
+
+  mock-recorder:
+    build:
+      context: ./mock-recorder
+      dockerfile: Dockerfile
+    ports:
+      - "8093:8093"
+    environment:
+      - PORT=8093
+
+  presentation-clicker:
+    build:
+      context: ../tech-support
+    ports:
+      - "5056:5000"
+    environment:
+      - PORT=5000
+      - SLIDE_HEIGHT=2160
+    volumes:
+      - ../tech-support/data:/app/data
+      - ../tech-support/presentations:/presentations:ro
+      - ${HOME}/Downloads:${HOME}/Downloads:ro
+    restart: unless-stopped
