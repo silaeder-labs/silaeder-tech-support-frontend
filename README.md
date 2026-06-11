@@ -8,11 +8,23 @@
 docker compose up --build
 ```
 
+`docker-compose.yml` содержит ссылки на образы GHCR для сервисов, которые собираются из этого репозитория:
+
+- `ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mixer:latest`
+- `ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mock-mixer:latest`
+- `ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mock-camera:latest`
+- `ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mock-recorder:latest`
+- `ghcr.io/silaeder-labs/obs-slides-site/presentation-clicker:latest`
+
+При необходимости их можно переопределить через `MIXER_IMAGE`, `MOCK_MIXER_IMAGE`, `MOCK_CAMERA_IMAGE`, `MOCK_RECORDER_IMAGE` и `PRESENTATION_CLICKER_IMAGE`.
+
+CI/CD собирает и публикует эти образы в GHCR. Для приватного `silaeder-labs/obs-slides-site` или публикации его образа из этого репозитория добавьте в GitHub Actions secret `OBS_SLIDES_SITE_TOKEN` или `GHCR_TOKEN` с доступом `contents:read` и `packages:write`.
+
 После запуска сайт будет доступен на `http://localhost:8080`.
 Мок X32 REST API для микшера будет доступен на `http://localhost:8090`.
 Мок ESP32 Camera Turner API будет доступен на `http://localhost:8091`.
 Мок xusb-recorder API будет доступен на `http://localhost:8093`; он отдает шумовой видеопоток на `/video`.
-Presentation Clicker API будет доступен на `http://localhost:5056` и будет использовать данные из соседней директории `../tech-support/data`.
+Presentation Clicker API будет доступен на `http://localhost:5056` и будет использовать данные из соседней директории `../obs-slides-site/data`.
 
 Адреса внешних API лежат в `config/api.env`. Сейчас там docker-адреса mixer/camera mock-сервисов и реального presentation-clicker контейнера:
 

@@ -1,0 +1,165 @@
+name: Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  docker-images:
+    name: Build and push Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout obs-slides-site
+        uses: actions/checkout@v4
+        with:
+          repository: silaeder-labs/obs-slides-site
+          path: obs-slides-site
+          token: ${{ secrets.OBS_SLIDES_SITE_TOKEN || github.token }}
+
+      - name: Set image names
+        id: images
+        shell: bash
+        run: |
+          repo="${GITHUB_REPOSITORY,,}"
+          echo "mixer=${REGISTRY}/${repo}/mixer" >> "$GITHUB_OUTPUT"
+          echo "mock_mixer=${REGISTRY}/${repo}/mock-mixer" >> "$GITHUB_OUTPUT"
+          echo "mock_camera=${REGISTRY}/${repo}/mock-camera" >> "$GITHUB_OUTPUT"
+          echo "mock_recorder=${REGISTRY}/${repo}/mock-recorder" >> "$GITHUB_OUTPUT"
+          echo "presentation_clicker=${REGISTRY}/silaeder-labs/obs-slides-site/presentation-clicker" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.OBS_SLIDES_SITE_TOKEN || github.token }}
+
+      - name: Extract mixer metadata
+        id: meta_mixer
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.images.outputs.mixer }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract mock mixer metadata
+        id: meta_mock_mixer
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.images.outputs.mock_mixer }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract mock camera metadata
+        id: meta_mock_camera
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.images.outputs.mock_camera }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract mock recorder metadata
+        id: meta_mock_recorder
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.images.outputs.mock_recorder }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract presentation clicker metadata
+        id: meta_presentation_clicker
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.images.outputs.presentation_clicker }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push mixer
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_mixer.outputs.tags }}
+          labels: ${{ steps.meta_mixer.outputs.labels }}
+          cache-from: type=gha,scope=mixer
+          cache-to: type=gha,mode=max,scope=mixer
+
+      - name: Build and push mock mixer
+        uses: docker/build-push-action@v6
+        with:
+          context: ./mock-mixer
+          file: ./mock-mixer/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_mock_mixer.outputs.tags }}
+          labels: ${{ steps.meta_mock_mixer.outputs.labels }}
+          cache-from: type=gha,scope=mock-mixer
+          cache-to: type=gha,mode=max,scope=mock-mixer
+
+      - name: Build and push mock camera
+        uses: docker/build-push-action@v6
+        with:
+          context: ./mock-camera
+          file: ./mock-camera/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_mock_camera.outputs.tags }}
+          labels: ${{ steps.meta_mock_camera.outputs.labels }}
+          cache-from: type=gha,scope=mock-camera
+          cache-to: type=gha,mode=max,scope=mock-camera
+
+      - name: Build and push mock recorder
+        uses: docker/build-push-action@v6
+        with:
+          context: ./mock-recorder
+          file: ./mock-recorder/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_mock_recorder.outputs.tags }}
+          labels: ${{ steps.meta_mock_recorder.outputs.labels }}
+          cache-from: type=gha,scope=mock-recorder
+          cache-to: type=gha,mode=max,scope=mock-recorder
+
+      - name: Build and push presentation clicker
+        uses: docker/build-push-action@v6
+        with:
+          context: ./obs-slides-site
+          file: ./obs-slides-site/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_presentation_clicker.outputs.tags }}
+          labels: ${{ steps.meta_presentation_clicker.outputs.labels }}
+          cache-from: type=gha,scope=presentation-clicker
+          cache-to: type=gha,mode=max,scope=presentation-clicker

@@ -1,5 +1,6 @@
 services:
   mixer:
+    image: ${MIXER_IMAGE:-ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mixer:latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,6 +17,7 @@ services:
       - presentation-clicker
 
   mock-mixer:
+    image: ${MOCK_MIXER_IMAGE:-ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mock-mixer:latest}
     build:
       context: ./mock-mixer
       dockerfile: Dockerfile
@@ -25,6 +27,7 @@ services:
       - PORT=8090
 
   mock-camera:
+    image: ${MOCK_CAMERA_IMAGE:-ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mock-camera:latest}
     build:
       context: ./mock-camera
       dockerfile: Dockerfile
@@ -34,6 +37,7 @@ services:
       - PORT=8091
 
   mock-recorder:
+    image: ${MOCK_RECORDER_IMAGE:-ghcr.io/silaeder-labs/silaeder-tech-support-frontend/mock-recorder:latest}
     build:
       context: ./mock-recorder
       dockerfile: Dockerfile
@@ -43,15 +47,16 @@ services:
       - PORT=8093
 
   presentation-clicker:
+    image: ${PRESENTATION_CLICKER_IMAGE:-ghcr.io/silaeder-labs/obs-slides-site/presentation-clicker:latest}
     build:
-      context: ../tech-support
+      context: ../obs-slides-site
     ports:
       - "5056:5000"
     environment:
       - PORT=5000
       - SLIDE_HEIGHT=2160
     volumes:
-      - ../tech-support/data:/app/data
-      - ../tech-support/presentations:/presentations:ro
+      - ../obs-slides-site/data:/app/data
+      - ../obs-slides-site/presentations:/presentations:ro
       - ${HOME}/Downloads:${HOME}/Downloads:ro
     restart: unless-stopped
