@@ -18,7 +18,7 @@ docker compose up --build
 
 При необходимости их можно переопределить через `MIXER_IMAGE`, `MOCK_MIXER_IMAGE`, `MOCK_CAMERA_IMAGE`, `MOCK_RECORDER_IMAGE` и `PRESENTATION_CLICKER_IMAGE`.
 
-CI/CD собирает и публикует эти образы в GHCR. Для приватного `silaeder-labs/obs-slides-site` или публикации его образа из этого репозитория добавьте в GitHub Actions secret `OBS_SLIDES_SITE_TOKEN` или `GHCR_TOKEN` с доступом `contents:read` и `packages:write`.
+CI/CD собирает и публикует эти образы в GHCR отдельными GitHub Actions workflow. Каждый workflow запускается только при изменениях в соответствующей директории сервиса или при изменении самого workflow-файла. Для приватного `silaeder-labs/obs-slides-site` или публикации его образа из этого репозитория добавьте в GitHub Actions secret `OBS_SLIDES_SITE_TOKEN` или `GHCR_TOKEN` с доступом `contents:read` и `packages:write`.
 
 После запуска сайт будет доступен на `http://localhost:8080`.
 Мок X32 REST API для микшера будет доступен на `http://localhost:8090`.
